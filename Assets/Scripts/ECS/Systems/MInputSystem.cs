@@ -11,21 +11,26 @@ namespace GamePlay
 {
     public struct InputData: IComponentData
     {
-        public float3 Move;
-        public float3 Look;
-        public bool Jump;
-        public bool Sprint;
-    }
+        public bool    Jump;
+        public bool    Sprint;
+        public Vector2 Move;
+        public Vector2 Look;
 
+        public bool    AnalogMovement;
+    }
 
     public class MInputSystem : SystemBase, InputSystemMaps.IPlayerActions
     {
+        private bool            jumpInput;
+        private bool            sprintInput;
+        private Vector2         moveInput;
+        private Vector2         lookInput;
         private InputSystemMaps ipmaps;
-        // private EntityQuery inputData;
-        private Vector2 move;
-        private Vector2 look;
-        private bool jump;
-        private bool sprint;
+
+#if !UNITY_IOS || !UNITY_ANDROID
+		private bool            cursorLocked = true;
+		private bool            cursorInputForLook = true;
+#endif
 
         protected override void OnCreate()
         {
@@ -34,7 +39,7 @@ namespace GamePlay
             ipmaps = new InputSystemMaps();
             ipmaps.Player.SetCallbacks(this);
 
-            // inputData = GetEntityQuery(typeof(InputData));
+            OnApplicationFocus(true);
         }
 
         protected override void OnStartRunning()
@@ -51,53 +56,52 @@ namespace GamePlay
 
         public void OnMove(InputAction.CallbackContext context)
         {
-            move = context.ReadValue<Vector2>();
+            moveInput = context.ReadValue<Vector2>();
         }
 
         public void OnLook(InputAction.CallbackContext context)
         {
-            look = context.ReadValue<Vector2>();
+            if(cursorInputForLook)
+			{
+                lookInput = context.ReadValue<Vector2>();
+			}
         }
 
         public void OnJump(InputAction.CallbackContext context)
         {
-            jump = context.ReadValueAsButton();
+            jumpInput = context.ReadValueAsButton();
         }
         
         public void OnSprint(InputAction.CallbackContext context)
         {
-            sprint = context.ReadValueAsButton();
+            sprintInput = context.ReadValueAsButton();
         }
+
+#if !UNITY_IOS || !UNITY_ANDROID
+		private void OnApplicationFocus(bool hasFocus)
+		{
+			SetCursorState(cursorLocked);
+		}
+
+		private void SetCursorState(bool newState)
+		{
+			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
+		}
+#endif
 
         protected override void OnUpdate()
         {
-            // if (inputData.CalculateChunkCount() != 0)
-            // {
-            //     inputData.SetSingleton(
-            //         new InputData
-            //         {
-            //             Move = new float3(move.x, 0.0f, move.y),
-            //             Look = new float3(look.x, 0.0f, look.y),
-            //             Jump = jump,
-            //             Sprint = sprint,
-            //         }
-            //     );
-            // }
-            // var horizontal = Input.GetAxis("Horizontal");
-            // var vertical = Input.GetAxis("Vertical");
-            var _move = this.move;
-            var _look = this.look;
-            var _jump = this.jump;
-            var _sprint = this.sprint;
+            var move = moveInput;
+            var look = lookInput;
+            var jump = jumpInput;
+            var sprint = sprintInput;
 
-            Entities.
-            WithAll<PlayerTag>().
-            WithName("Input").
+            Entities.WithAll<PlayerTag>().WithName("Input").
             ForEach((ref InputData inputData) => {
-                inputData.Move = new float3(_move.x, 0.0f, _move.y);
-                inputData.Look = new float3(_look.x, 0.0f, _look.y);
-                inputData.Jump = _jump;
-                inputData.Sprint = _sprint;
+                inputData.Move = move;
+                inputData.Look = look;
+                inputData.Jump = jump;
+                inputData.Sprint = sprint;
             }).ScheduleParallel();
         }
     }

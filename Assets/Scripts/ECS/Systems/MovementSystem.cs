@@ -18,14 +18,14 @@ namespace GamePlay
             Entities.
             WithName("MoveCharacter").
             ForEach((ref Translation translation, ref Rotation rotation, in InputData input, in MovementComponent movement) => {
-                var dir = input.Move * movement.MetersPerSecond * deltaTime;
-                dir.y = 0.0f;
+                var move = new float3(input.Move.x, 0.0f, input.Move.y);
+                var dir = move * movement.MetersPerSecond * deltaTime;
 
                 // 转向
-                if (math.length(input.Move) > 0.1f)
-                {
-                    rotation.Value = quaternion.LookRotation(math.normalize(dir), math.up());
-                }
+                // if (math.length(input.Move) > 0.1f)
+                // {
+                //     rotation.Value = quaternion.LookRotation(math.normalize(dir), math.up());
+                // }
 
                 // 移动
                 translation.Value += dir;
