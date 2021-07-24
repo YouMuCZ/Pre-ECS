@@ -18,14 +18,13 @@ namespace GamePlay
         public float3 Gravity;
         public float3 VerticalVelocity;
         public float3 TerminalVelocity;
-        public float FallTimeout;
-        public float FallTimeoutDelta;
+        public float FallTimeout;  // 下落延迟重置值
+        public float FallTimeoutDelta;  // 下落延迟，主要用于动画机表现
     }
 
     public struct GroundCheckComponent : IComponentData
     {
-        public bool Grounded;
-        public float GroundedOffset;
-        public float GroundedRadius;
+        public bool IsGrounded;
+        public float Epsilon;
     }
 }

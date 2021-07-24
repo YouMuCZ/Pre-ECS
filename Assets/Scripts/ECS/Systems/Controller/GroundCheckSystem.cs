@@ -3,35 +3,87 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Physics.Extensions;
+using Unity.Physics.GraphicsIntegration;
+using Unity.Physics.Systems;
 using Unity.Transforms;
+using UnityEngine;
 
-public class GroundCheckSystem : SystemBase
+
+namespace GamePlay
 {
 
-    protected override void OnUpdate()
+    public class GroundCheckSystem : SystemBase
     {
-        // Assign values to local variables captured in your job here, so that it has
-        // everything it needs to do its work when it runs later.
-        // For example,
-        //     float deltaTime = Time.DeltaTime;
+        private BuildPhysicsWorld buildPhysicsWorld;
 
-        // This declares a new kind of job, which is a unit of work to do.
-        // The job is declared as an Entities.ForEach with the target components as parameters,
-        // meaning it will process all entities in the world that have both
-        // Translation and Rotation components. Change it to process the component
-        // types you want.
-        
-        
-        
-        Entities.ForEach((ref Translation translation, in Rotation rotation) => {
-            // Implement the work to perform for each entity here.
-            // You should only access data that is local or that is a
-            // field on this job. Note that the 'rotation' parameter is
-            // marked as 'in', which means it cannot be modified,
-            // but allows this job to run in parallel with other jobs
-            // that want to read Rotation component data.
-            // For example,
-            //     translation.Value += math.mul(rotation.Value, new float3(0, 0, 1)) * deltaTime;
-        }).Schedule();
+        protected override void OnCreate()
+        {
+            base.OnCreate();
+
+            buildPhysicsWorld = World.GetOrCreateSystem<BuildPhysicsWorld>();
+        }
+
+        protected override void OnUpdate()
+        {
+
+            var collisionWorld = buildPhysicsWorld.PhysicsWorld.CollisionWorld;
+            
+            Entities.ForEach((ref Translation translation, ref PhysicsCollider collider, ref GroundCheckComponent groundCheck, in GravityComponent gravityData) => {
+                // 位置修正
+                // var curPosition = translation.Value + new float3(0.0f, groundCheck.Epsilon, 0.0f)*-math.normalize(gravityData.Gravity);
+
+                CheckGrounded(ref collider, ref collisionWorld, ref groundCheck, translation.Value, gravityData);
+            }).Run();
+        }
+
+        private unsafe static void CheckGrounded(ref PhysicsCollider collider, ref CollisionWorld collisionWorld, ref GroundCheckComponent groundCheck ,in float3 curPosition, in GravityComponent gravityData)
+        {
+            // 画个盒子
+            // var aabb = collider.ColliderPtr->CalculateAabb();
+            // float mod = 0.15f;
+
+            // float3 samplePos = curPosition + new float3(0.0f, aabb.Min.y, 0.0f);
+            // float3 gravity = math.normalize(gravityData.Gravity);
+            // float3 offset = (gravity * 0.1f);
+
+            // float3 posLeft = samplePos - new float3(aabb.Extents.x * mod, 0.0f, 0.0f);
+            // float3 posRight = samplePos + new float3(aabb.Extents.x * mod, 0.0f, 0.0f);
+            // float3 posForward = samplePos + new float3(0.0f, 0.0f, aabb.Extents.z * mod);
+            // float3 posBackward = samplePos - new float3(0.0f, 0.0f, aabb.Extents.z * mod);
+
+            float3 samplePos = curPosition - new float3(0.0f, 0.9f, 0.0f);
+            float3 offset = new float3(0.0f, 0.1f, 0.0f);
+
+            var input = new RaycastInput
+            {
+                Start = samplePos,
+                End = samplePos - offset,
+                Filter = PhysicsCollisionFilters.GroundCheckFilter,
+            };
+
+            // NativeList<Unity.Physics.RaycastHit> allHits = new NativeList<Unity.Physics.RaycastHit>(Allocator.Temp);
+
+            // if (collisionWorld.CastRay(input, ref allHits))
+            // {
+            //     foreach (var entity in allHits)
+            //     {
+            //         Debug.Log(entity.Entity);
+            //     }
+            // }
+
+            // 射线检测
+            if (collisionWorld.CastRay(input, out Unity.Physics.RaycastHit hit))
+            {
+                groundCheck.IsGrounded = true;
+                return;
+            }
+
+            groundCheck.IsGrounded = false;
+        }
+
     }
+
 }
+

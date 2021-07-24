@@ -19,17 +19,17 @@ namespace GamePlay
             Entities.
             WithName("MoveCharacter").
             ForEach((ref Translation translation, ref Rotation rotation, in InputData input, in MovementComponent movement, in GravityComponent gravity) => {
-                var move = new float3(input.Move.x, 0.0f, input.Move.y);
-                var dir = move * movement.MoveSpeed * deltaTime + gravity.VerticalVelocity * deltaTime;
+                var move = new float3(input.Move.x, 0.0f, input.Move.y) * movement.MoveSpeed * deltaTime;
+                var down = gravity.VerticalVelocity * deltaTime;
 
                 // 转向
                 if (math.length(input.Move) > 0.1f)
                 {
-                    rotation.Value = quaternion.LookRotation(math.normalize(dir), math.up());
+                    rotation.Value = quaternion.LookRotation(math.normalize(move), math.up());
                 }
 
                 // 移动
-                translation.Value += dir;
+                translation.Value += move + down;
             }).ScheduleParallel();
         }
     }

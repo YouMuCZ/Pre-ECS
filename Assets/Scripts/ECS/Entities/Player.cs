@@ -35,13 +35,11 @@ namespace GamePlay
         [Tooltip("Time required to pass before entering the fall state. Useful for walking down stairs")]
 		public float FallTimeout = 0.15f;
         
-        [Header("Player Grounded")]
+        [Header("Grounded")]
 		[Tooltip("角色是否在地面")]
-		public bool Grounded = true;
+		public bool IsGrounded = true;
 		[Tooltip("粗糙地面,偏置值")]
-		public float GroundedOffset = -0.14f;
-		[Tooltip("地面检测器的半径")]
-		public float GroundedRadius = 0.28f;
+		public float Epsilon = 0.001f;
         
         /// <summary>
         /// A function which converts our Player authoring GameObject to a more optimized Entity representation
@@ -60,6 +58,8 @@ namespace GamePlay
         /// <param name="conversionSystem">Used for more advanced conversion features. Not used here.</param>
         public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
         {
+            if (!enabled) return;
+
             // Here we add all of the components needed by the player
             dstManager.AddComponents(entity, new ComponentTypes(
                 typeof(PlayerTag),
@@ -91,9 +91,8 @@ namespace GamePlay
 
             var groundCheckComponent = new GroundCheckComponent
             {
-                Grounded = Grounded,
-                GroundedOffset = GroundedOffset,
-                GroundedRadius = GroundedRadius,
+                IsGrounded = IsGrounded,
+                Epsilon = Epsilon,
             };
             
             dstManager.SetComponentData(entity, gravityComponent);

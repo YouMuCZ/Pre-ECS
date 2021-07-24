@@ -15,13 +15,13 @@ namespace GamePlay
             
             Entities.WithAll<PlayerTag>().ForEach((ref Translation translation, ref GravityComponent gravity, in GroundCheckComponent ground) => 
             {
-                if (ground.Grounded)
+                if (ground.IsGrounded)
                 {
                     gravity.FallTimeoutDelta = gravity.FallTimeout;
 
                     if (gravity.VerticalVelocity.y < 0.0f)
                     {
-                        gravity.VerticalVelocity.y = -2f;
+                        gravity.VerticalVelocity.y = 0.0f;
                     }
                 }
                 else
@@ -30,13 +30,11 @@ namespace GamePlay
                     {
                         gravity.FallTimeoutDelta -= deltaTime;
                     }
-                }
 
-                // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-                if (gravity.VerticalVelocity.y < gravity.TerminalVelocity.y)
-                {
+                    // multiply by delta time twice to linearly speed up over time
                     gravity.VerticalVelocity += gravity.Gravity * deltaTime;
                 }
+
             }).Run();
         }
     }
