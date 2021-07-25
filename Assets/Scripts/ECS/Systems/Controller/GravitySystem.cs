@@ -13,7 +13,7 @@ namespace GamePlay
         {
             var deltaTime = Time.DeltaTime;
             
-            Entities.WithAll<PlayerTag>().ForEach((ref Translation translation, ref GravityComponent gravity, in GroundCheckComponent ground) => 
+            Entities.ForEach((ref Translation translation, ref GravityComponent gravity, in GroundCheckComponent ground) => 
             {
                 if (ground.IsGrounded)
                 {

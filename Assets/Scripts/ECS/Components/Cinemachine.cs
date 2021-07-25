@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace GamePlay
 {
@@ -14,6 +15,7 @@ namespace GamePlay
 
         public float CinemachineTargetYaw;
         public float CinemachineTargetPitch;
+        public quaternion CinemachineTargetRotation;
 
         public float Threshold;
     }

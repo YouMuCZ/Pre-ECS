@@ -30,11 +30,13 @@ namespace GamePlay
             ));
 
             dstManager.SetComponentData(entity, new CinemachineComponent {
-                TopClamp = this.TopClamp, 
-                BottomClamp = this.BottomClamp, 
-                CameraAngleOverride = this.CameraAngleOverride,
-                LockCameraPosition = this.LockCameraPosition,
-                Threshold = this.Threshold
+                TopClamp = TopClamp, 
+                BottomClamp = BottomClamp, 
+                CameraAngleOverride = CameraAngleOverride,
+                LockCameraPosition = LockCameraPosition,
+                Threshold = Threshold,
+
+                CinemachineTargetRotation = new quaternion().value,
             });
         }
     }

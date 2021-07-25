@@ -58,7 +58,6 @@ namespace StarterAssets
 		public void LookInput(Vector2 newLookDirection)
 		{
 			look = newLookDirection;
-			Debug.Log(look);
 		}
 
 		public void JumpInput(bool newJumpState)

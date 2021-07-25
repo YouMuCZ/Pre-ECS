@@ -12,7 +12,7 @@ using Unity.Transforms;
 
 namespace GamePlay
 {
-
+    [UpdateAfter(typeof(GravitySystem))]
     public class GroundCheckSystem : SystemBase
     {
         private BuildPhysicsWorld buildPhysicsWorld;

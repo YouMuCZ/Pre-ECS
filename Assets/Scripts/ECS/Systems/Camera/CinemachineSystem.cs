@@ -11,13 +11,13 @@ namespace GamePlay
     /// <summary>
     /// 根据玩家输入转动相机视角
     /// </summary>
-    [UpdateAfter(typeof(PlayerCameraRootFollowSystem))]
+    [UpdateBefore(typeof(MovementSystem)), UpdateAfter(typeof(MInputSystem))]
     public class CameraRotationSystem : SystemBase
     {
         protected override void OnUpdate()
         {
-
             var look = new Vector2(0.0f, 0.0f);
+            var detalTime = Time.DeltaTime;
 
             Entities.WithAll<PlayerTag>().ForEach((in InputData inputData) => {
                 look = inputData.Look;
@@ -27,8 +27,8 @@ namespace GamePlay
                 // if there is an input and camera position is not fixed
                 if (look.sqrMagnitude >= cinemachineData.Threshold && !cinemachineData.LockCameraPosition)
                 {
-                    cinemachineData.CinemachineTargetYaw += look.x * Time.DeltaTime;
-                    cinemachineData.CinemachineTargetPitch += look.y * Time.DeltaTime;
+                    cinemachineData.CinemachineTargetYaw += look.x * detalTime;
+                    cinemachineData.CinemachineTargetPitch += look.y * detalTime;
                 }
 
                 // clamp our rotations so our values are limited 360 degrees
@@ -36,7 +36,7 @@ namespace GamePlay
                 cinemachineData.CinemachineTargetPitch = ClampAngle(cinemachineData.CinemachineTargetPitch, cinemachineData.BottomClamp, cinemachineData.TopClamp);
 
                 // Cinemachine will follow this target
-                transform.rotation = Quaternion.Euler(cinemachineData.CinemachineTargetPitch + cinemachineData.CameraAngleOverride, cinemachineData.CinemachineTargetYaw, 0.0f);
+                transform.rotation = quaternion.Euler(math.radians(cinemachineData.CinemachineTargetPitch + cinemachineData.CameraAngleOverride), math.radians(cinemachineData.CinemachineTargetYaw) , 0.0f);
             }).Run();
         }
 
@@ -44,7 +44,7 @@ namespace GamePlay
 		{
 			if (lfAngle < -360f) lfAngle += 360f;
 			if (lfAngle > 360f) lfAngle -= 360f;
-			return Mathf.Clamp(lfAngle, lfMin, lfMax);
+            return math.clamp(lfAngle, lfMin, lfMax);
 		}
     }
 }

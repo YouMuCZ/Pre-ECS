@@ -62,10 +62,14 @@ namespace GamePlay
 
             // Here we add all of the components needed by the player
             dstManager.AddComponents(entity, new ComponentTypes(
-                typeof(PlayerTag),
+                typeof(PlayerTag)
+            ));
+
+            dstManager.AddComponents(entity, new ComponentTypes(
                 typeof(InputData),
                 typeof(GravityComponent),
                 typeof(GroundCheckComponent),
+                typeof(CinemachineComponent),
                 typeof(MovementComponent)
             ));
 
