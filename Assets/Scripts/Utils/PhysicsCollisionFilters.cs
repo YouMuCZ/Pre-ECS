@@ -6,7 +6,7 @@ namespace GamePlay
     /// <summary>
     /// 物理碰撞检测层标签,通过进制法判断
     /// </summary>
-    public enum CollisionFilterLayers
+    public enum PhysicsCollisionFilterLayers
     {
         Nothing = 0,
         Everything = 0xFFFF,
@@ -28,8 +28,8 @@ namespace GamePlay
         /// <returns></returns>
         public static readonly CollisionFilter GroundCheckFilter = new CollisionFilter()
         {
-            BelongsTo = (int)CollisionFilterLayers.Character,
-            CollidesWith = ~(uint)(CollisionFilterLayers.Character),
+            BelongsTo = (int)PhysicsCollisionFilterLayers.Character,
+            CollidesWith = ~(uint)(PhysicsCollisionFilterLayers.Character),
         };
     }
 
