@@ -22,14 +22,16 @@ namespace GamePlay
     /// <param name="CollidesWith">射线可以和哪些碰撞器发生碰撞检测</param>
     public static class PhysicsCollisionFilters
     {
-        /// <summary>
-        /// 不检测角色
-        /// </summary>
-        /// <returns></returns>
-        public static readonly CollisionFilter GroundCheckFilter = new CollisionFilter()
+        public static readonly CollisionFilter AllWithAll = new CollisionFilter()
+        {
+            BelongsTo = (int)PhysicsCollisionFilterLayers.Everything,
+            CollidesWith = (int)PhysicsCollisionFilterLayers.Everything
+        };
+
+        public static readonly CollisionFilter CharacterGroundFilter = new CollisionFilter()
         {
             BelongsTo = (int)PhysicsCollisionFilterLayers.Character,
-            CollidesWith = ~(uint)(PhysicsCollisionFilterLayers.Character),
+            CollidesWith = (int)PhysicsCollisionFilterLayers.Terrain,
         };
     }
 

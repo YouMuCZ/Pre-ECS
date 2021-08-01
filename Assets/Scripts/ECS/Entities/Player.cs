@@ -40,6 +40,10 @@ namespace GamePlay
 		public bool IsGrounded = true;
 		[Tooltip("粗糙地面,偏置值")]
 		public float Epsilon = 0.001f;
+        [Tooltip("碰撞检测盒修正比率")]
+        public float Modify = 0.5f;
+        [Tooltip("射线长度偏置值")]
+        public float3 Offset = new float3(0.0f, 0.1f, 0.0f);
         
         /// <summary>
         /// A function which converts our Player authoring GameObject to a more optimized Entity representation
@@ -67,14 +71,14 @@ namespace GamePlay
 
             dstManager.AddComponents(entity, new ComponentTypes(
                 typeof(InputData),
-                typeof(GravityComponent),
-                typeof(GroundCheckComponent),
+                typeof(GravityComponentData),
+                typeof(GroundCheckComponentData),
                 typeof(CinemachineComponent),
-                typeof(MovementComponent)
+                typeof(MovementComponentData)
             ));
 
             // Set the movement data from the authoring component
-            var movementComponent = new MovementComponent
+            var movementComponent = new MovementComponentData
             {
                 MoveSpeed = MoveSpeed,
                 SprintSpeed = SprintSpeed,
@@ -84,7 +88,7 @@ namespace GamePlay
                 JumpTimeout = JumpTimeout,
             };
 
-            var gravityComponent = new GravityComponent
+            var gravityComponent = new GravityComponentData
             {
                 Gravity = Gravity,
                 FallTimeout = FallTimeout,
@@ -93,10 +97,12 @@ namespace GamePlay
                 TerminalVelocity = TerminalVelocity,
             };
 
-            var groundCheckComponent = new GroundCheckComponent
+            var groundCheckComponent = new GroundCheckComponentData
             {
                 IsGrounded = IsGrounded,
                 Epsilon = Epsilon,
+                Modify = Modify,
+                Offset = Offset,
             };
             
             dstManager.SetComponentData(entity, gravityComponent);

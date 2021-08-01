@@ -24,86 +24,66 @@ namespace GamePlay
             buildPhysicsWorld = World.GetOrCreateSystem<BuildPhysicsWorld>();
         }
 
-        protected override void OnUpdate()
-        {
-            var collisionWorld = buildPhysicsWorld.PhysicsWorld.CollisionWorld;
-            var startOffset = new float3(0.0f, 0.9f, 0.0f);
-            var endOffset = new float3(0.0f, 1.1f, 0.0f);
-            
-            Entities.ForEach((ref Translation translation, ref GroundCheckComponent groundCheck) => {
-
-                var input = new RaycastInput
-                {
-                    Start = translation.Value - startOffset,
-                    End = translation.Value - endOffset,
-                    Filter = PhysicsCollisionFilters.GroundCheckFilter,
-                };
-
-                // 射线检测
-                if (collisionWorld.CastRay(input, out Unity.Physics.RaycastHit hit))
-                {
-                    groundCheck.IsGrounded = true;
-                }
-                else
-                {
-                    groundCheck.IsGrounded = false;
-                }
-
-            }).Run();
-        }
-
+        // /// <summary>
+        // /// 1. 简单射线检测，从entity中心向下发射射线
+        // /// </summary>
         // protected override void OnUpdate()
         // {
-
         //     var collisionWorld = buildPhysicsWorld.PhysicsWorld.CollisionWorld;
+        //     var startOffset = new float3(0.0f, 0.9f, 0.0f);
+        //     var endOffset = new float3(0.0f, 1.1f, 0.0f);
             
-        //     Entities.ForEach((ref Translation translation, ref PhysicsCollider collider, ref GroundCheckComponent groundCheck, in GravityComponent gravityData) => {
-        //         // 位置修正
-        //         // var curPosition = translation.Value + new float3(0.0f, groundCheck.Epsilon, 0.0f)*-math.normalize(gravityData.Gravity);
+        //     Entities.ForEach((ref Translation translation, ref GroundCheckComponent groundCheck) => {
 
-        //         // CheckGrounded(ref collider, ref collisionWorld, ref groundCheck, translation.Value, gravityData);
+        //         var input = new RaycastInput
+        //         {
+        //             Start = translation.Value - startOffset,
+        //             End = translation.Value - endOffset,
+        //             Filter = PhysicsCollisionFilters.CharacterGroundCheckFilter,
+        //         };
+
+        //         // 射线检测
+        //         if (collisionWorld.CastRay(input, out Unity.Physics.RaycastHit hit))
+        //         {
+        //             groundCheck.IsGrounded = true;
+        //         }
+        //         else
+        //         {
+        //             groundCheck.IsGrounded = false;
+        //         }
+
         //     }).Run();
         // }
 
-        // private unsafe static void CheckGrounded(ref PhysicsCollider collider, ref CollisionWorld collisionWorld, ref GroundCheckComponent groundCheck ,in float3 curPosition, in GravityComponent gravityData)
-        // {
-        //     // 画个盒子
-        //     // var aabb = collider.ColliderPtr->CalculateAabb();
-        //     // float mod = 0.15f;
+        /// <summary>
+        /// 2. 多射线检测法，构建AABB盒，在盒子底部发射多条射线进行检测
+        /// </summary>
+        protected unsafe override void OnUpdate()
+        {
 
-        //     // float3 samplePos = curPosition + new float3(0.0f, aabb.Min.y, 0.0f);
-        //     // float3 gravity = math.normalize(gravityData.Gravity);
-        //     // float3 offset = (gravity * 0.1f);
+            var collisionWorld = buildPhysicsWorld.PhysicsWorld.CollisionWorld;
+            
+            Entities.ForEach((ref Translation translation, ref PhysicsCollider collider, ref GroundCheckComponentData ground) => 
+            {
+                Aabb aabb   = collider.ColliderPtr->CalculateAabb();
 
-        //     // float3 posLeft = samplePos - new float3(aabb.Extents.x * mod, 0.0f, 0.0f);
-        //     // float3 posRight = samplePos + new float3(aabb.Extents.x * mod, 0.0f, 0.0f);
-        //     // float3 posForward = samplePos + new float3(0.0f, 0.0f, aabb.Extents.z * mod);
-        //     // float3 posBackward = samplePos - new float3(0.0f, 0.0f, aabb.Extents.z * mod);
+                float3 cPos = translation.Value + new float3(0.0f, aabb.Min.y, 0.0f);
+                float3 lPos = cPos - new float3(aabb.Extents.x * ground.Modify, 0.0f, 0.0f);
+                float3 rPos = cPos + new float3(aabb.Extents.x * ground.Modify, 0.0f, 0.0f);
+                float3 fPos = cPos + new float3(0.0f, 0.0f, aabb.Extents.z * ground.Modify);
+                float3 bPos = cPos - new float3(0.0f, 0.0f, aabb.Extents.z * ground.Modify);
 
-        //     float3 samplePos = curPosition - new float3(0.0f, 0.9f, 0.0f);
-        //     float3 offset = new float3(0.0f, 0.1f, 0.0f);
+                ground.IsGrounded = 
+                (
+                    PhysicsUtils.CastRay(out RaycastHit cHit, cPos, cPos - ground.Offset, ref collisionWorld, Entity.Null, PhysicsCollisionFilters.CharacterGroundFilter) ||
+                    PhysicsUtils.CastRay(out RaycastHit lHit, lPos, lPos - ground.Offset, ref collisionWorld, Entity.Null, PhysicsCollisionFilters.CharacterGroundFilter) ||
+                    PhysicsUtils.CastRay(out RaycastHit rHit, rPos, rPos - ground.Offset, ref collisionWorld, Entity.Null, PhysicsCollisionFilters.CharacterGroundFilter) ||
+                    PhysicsUtils.CastRay(out RaycastHit fHit, fPos, fPos - ground.Offset, ref collisionWorld, Entity.Null, PhysicsCollisionFilters.CharacterGroundFilter) ||
+                    PhysicsUtils.CastRay(out RaycastHit bHit, bPos, bPos - ground.Offset, ref collisionWorld, Entity.Null, PhysicsCollisionFilters.CharacterGroundFilter)
+                );
+            }).Run();
 
-        //     var input = new RaycastInput
-        //     {
-        //         Start = samplePos,
-        //         End = samplePos - offset,
-        //         Filter = PhysicsCollisionFilters.GroundCheckFilter,
-        //     };
-
-        //     NativeList<Unity.Physics.RaycastHit> allHits = new NativeList<Unity.Physics.RaycastHit>(Allocator.Temp);
-
-        //     if (collisionWorld.CastRay(input, ref allHits))
-        //     {
-        //         foreach (var entity in allHits)
-        //         {
-        //             groundCheck.IsGrounded = true;
-        //             return;
-        //         }
-        //     }
-        //     allHits.Dispose();
-
-        //     groundCheck.IsGrounded = false;
-        // }
+        }
 
     }
 

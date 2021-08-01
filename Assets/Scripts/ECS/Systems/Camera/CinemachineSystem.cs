@@ -36,7 +36,8 @@ namespace GamePlay
                 cinemachineData.CinemachineTargetPitch = ClampAngle(cinemachineData.CinemachineTargetPitch, cinemachineData.BottomClamp, cinemachineData.TopClamp);
 
                 // Cinemachine will follow this target
-                transform.rotation = quaternion.Euler(math.radians(cinemachineData.CinemachineTargetPitch + cinemachineData.CameraAngleOverride), math.radians(cinemachineData.CinemachineTargetYaw) , 0.0f);
+                // transform.rotation = quaternion.Euler(math.radians(cinemachineData.CinemachineTargetPitch + cinemachineData.CameraAngleOverride), math.radians(cinemachineData.CinemachineTargetYaw) , 0.0f);
+                transform.rotation = Quaternion.Euler(cinemachineData.CinemachineTargetPitch + cinemachineData.CameraAngleOverride, cinemachineData.CinemachineTargetYaw, 0.0f);;
             }).Run();
         }
 
