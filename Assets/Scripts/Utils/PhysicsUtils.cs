@@ -8,7 +8,29 @@ namespace GamePlay
 {
     public class PhysicsUtils
     {
-        public unsafe static NativeList<RaycastHit> CastRatAll(float3 start, float3 end, ref CollisionWorld collisionWorld, Entity ignore, CollisionFilter? filter = null, Allocator allocator = Allocator.TempJob)
+        /// <summary>
+        /// 沿指定射线投射碰撞检测，并返回所有结果
+        /// </summary>
+        public unsafe static NativeList<ColliderCastHit> ColliderCastHitAll(PhysicsCollider collider, float3 start, float3 end, ref CollisionWorld collisionWorld,Entity ignore,Allocator allocator = Allocator.TempJob)
+        {
+            ColliderCastInput input = new ColliderCastInput()
+            {
+                Collider = collider.ColliderPtr,
+                Start = start,
+                End = end,
+            };
+
+            NativeList<ColliderCastHit> allHits = new NativeList<ColliderCastHit>(allocator);
+
+            if (collisionWorld.CastCollider(input, ref allHits))
+            {
+                TrimByEntity(ref allHits, ignore);
+            }
+
+            return allHits;
+        }
+
+        public unsafe static NativeList<RaycastHit> CastRayAll(float3 start, float3 end, ref CollisionWorld collisionWorld, Entity ignore, CollisionFilter? filter = null, Allocator allocator = Allocator.TempJob)
         {
             RaycastInput input = new RaycastInput()
             {
@@ -40,7 +62,7 @@ namespace GamePlay
         /// <returns></returns>
         public unsafe static bool CastRay(out RaycastHit nearestHit, float3 start, float3 end, ref CollisionWorld collisionWorld, Entity ignore, CollisionFilter? filter = null, Allocator allocator = Allocator.Temp)
         {
-            NativeList<RaycastHit> allHits = CastRatAll(start, end, ref collisionWorld, ignore, filter, allocator);
+            NativeList<RaycastHit> allHits = CastRayAll(start, end, ref collisionWorld, ignore, filter, allocator);
 
             bool gotHit = GetSmallestFractional(ref allHits, out nearestHit);
             allHits.Dispose();
